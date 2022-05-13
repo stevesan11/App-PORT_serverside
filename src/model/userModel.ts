@@ -1,11 +1,11 @@
-import { model, Schema } from "mongoose";
+import { model, Schema, Types } from "mongoose";
 
 export interface UserData {
 	image: string;
 	username: string;
 	email: string;
 	password: string;
-	apps: object[];
+	apps: Types.ObjectId[];
 }
 
 const userSchema: Schema = new Schema<UserData>({
@@ -13,7 +13,7 @@ const userSchema: Schema = new Schema<UserData>({
 	username: { type: String, required: true, unique: true, minlength: 3, maxlength: 20 },
 	email: { type: String, required: true, unique: true, minlength: 6, maxlength: 320 },
 	password: { type: String, required: true, minlength: 8, maxlength: 20 },
-	apps: [{ type: Schema.Types.ObjectId, required: true, ref: "Place" }],
+	apps: [{ type: Schema.Types.ObjectId, required: true, ref: "App" }],
 });
 
 const User = model<UserData>("User", userSchema);

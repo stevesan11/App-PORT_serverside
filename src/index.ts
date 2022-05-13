@@ -19,7 +19,9 @@ app.use("/api/app", appsRoutes);
 app.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {
 	if (req.file) {
 		fs.unlink(req.file.path, (err) => {
-			console.log(err);
+			if (err) {
+				console.log(err);
+			}
 		});
 	}
 	if (res.headersSent) {
