@@ -1,6 +1,7 @@
 import { model, Schema, Types } from "mongoose";
 
 export interface UserData {
+	_id: Types.ObjectId;
 	image: string;
 	username: string;
 	email: string;

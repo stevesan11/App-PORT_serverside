@@ -1,6 +1,7 @@
 import { model, Schema, Types } from "mongoose";
 
 export interface AppData {
+	_id?: Types.ObjectId;
 	title: string;
 	description: string;
 	image: string;

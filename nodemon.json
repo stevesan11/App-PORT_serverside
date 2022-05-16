@@ -2,7 +2,7 @@
 	"env": {
 		"PORT": "3030",
 		"MONGO_NAME": "admin-Yuki",
-		"MONGO_PASS": "yuki1116",
+		"MONGO_PASS": "yuki1116.",
 		"DB_NAME": "appport"
 	},
 	"watch": ["src"],

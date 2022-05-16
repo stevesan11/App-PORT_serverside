@@ -36,9 +36,9 @@ const uploadFile = (req: Request, res: Response, next: NextFunction) => {
 
 	upload(req, res, function (err) {
 		if (err instanceof multer.MulterError) {
-			next(new HttpError(err.message, 400));
+			return next(new HttpError(err.message, 400));
 		} else if (err) {
-			next(new HttpError(err.message, 406));
+			return next(new HttpError(err.message, 406));
 		}
 		next();
 	});
