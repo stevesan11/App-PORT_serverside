@@ -1,21 +1,26 @@
 import { Request, Response, NextFunction } from "express";
+import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 
 import HttpError from "../model/http-error";
 
 import User, { UserData } from "../model/userModel";
+import { AppData } from "../model/appModel";
 
 export const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
-	let users;
+	let user;
 	try {
-		users = await User.find({}, "username image apps");
+		user = await User.find({}, "username image").populate<{
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			apps: mongoose.Document<unknown, any, AppData> & AppData;
+		}>("apps", "-author");
 	} catch (err) {
 		return next(new HttpError("Fetching users failed, please try again later", 500));
 	}
-	if (!users) {
+	if (!user) {
 		return next(new HttpError("None of the user data exists.", 204));
 	}
-	res.status(201).json({ users });
+	res.status(201).json({ user });
 };
 
 export const signup = async (req: Request, res: Response, next: NextFunction) => {
@@ -60,7 +65,7 @@ export const signup = async (req: Request, res: Response, next: NextFunction) =>
 
 	const payload = { userId: newUser._id, email: newUser.email };
 	const token = jwt.sign(payload, "secret", { expiresIn: "1h" });
-	res.status(201).json({ newUser, token });
+	res.status(201).json({ userId: newUser._id, token });
 };
 
 export const login = async (req: Request, res: Response, next: NextFunction) => {
@@ -70,5 +75,5 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
 	}
 	const payload = { userId: user._id, email: user.email };
 	const token = jwt.sign(payload, "secret", { expiresIn: "1h" });
-	res.status(201).json({ user, token });
+	res.status(201).json({ userId: user._id, token });
 };

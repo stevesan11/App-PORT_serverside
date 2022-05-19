@@ -3,7 +3,8 @@
 		"PORT": "3030",
 		"MONGO_NAME": "admin-Yuki",
 		"MONGO_PASS": "yuki1116.",
-		"DB_NAME": "appport"
+		"DB_NAME": "appport",
+		"FRONT_URL": "http://localhost:3000"
 	},
 	"watch": ["src"],
 	"ext": "ts",

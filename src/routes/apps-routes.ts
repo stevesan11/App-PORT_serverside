@@ -5,7 +5,6 @@ import uploadFile from "../middleware/file-upload";
 import {
 	createNewApp,
 	deleteApp,
-	getAllApps,
 	getAppById,
 	getAppByUserId,
 	updateApp,
@@ -14,7 +13,6 @@ import { checkJwtAuth } from "../middleware/check-auth";
 
 const router = express.Router();
 
-router.get("/", getAllApps);
 router.get("/:appId", getAppById);
 router.get("/user/:userId", getAppByUserId);
 

@@ -3,54 +3,53 @@ import fs from "fs";
 import { Request, Response, NextFunction } from "express";
 import mongoose, { Types } from "mongoose";
 
-import App from "../model/appModel";
+import App, { AppData } from "../model/appModel";
 import User, { UserData } from "../model/userModel";
 import HttpError from "../model/http-error";
 
-export const getAllApps = async (req: Request, res: Response, next: NextFunction) => {
-	let apps;
-	try {
-		apps = await App.find({});
-	} catch (error) {
-		return next(new HttpError("Fetching appss failed, please try again later", 500));
-	}
-	if (!apps) {
-		return next(new HttpError("None of the apps data exists.", 204));
-	}
-	res.status(200).json({ apps });
-};
+// export const getAllApps = async (req: Request, res: Response, next: NextFunction) => {
+// 	let apps;
+// 	try {
+// 		apps = await App.find({});
+// 	} catch (error) {
+// 		return next(new HttpError("Fetching appss failed, please try again later", 500));
+// 	}
+// 	if (!apps) {
+// 		return next(new HttpError("None of the apps data exists.", 204));
+// 	}
+// 	res.status(200).json({ apps });
+// };
 
 export const getAppById = async (req: Request, res: Response, next: NextFunction) => {
 	const appId = new mongoose.Types.ObjectId(req.params.appId);
-	let apps;
+	let app;
 	try {
-		apps = await App.findById(appId);
+		app = await App.findById(appId, "-author");
 	} catch (error) {
 		return next(new HttpError("Fetching app is failed, please try again later", 500));
 	}
-	if (!apps) {
+	if (!app) {
 		return next(new HttpError("Invalid application ID, could not find", 400));
 	}
-	res.status(200).json({ apps });
+	res.status(200).json({ app });
 };
 
 export const getAppByUserId = async (req: Request, res: Response, next: NextFunction) => {
 	const userId = new mongoose.Types.ObjectId(req.params.userId);
 
-	if (!req.file) {
-		return next(new HttpError("Please provide an image", 500));
-	}
-
-	let app;
+	let user;
 	try {
-		app = await User.findById(userId).populate("apps");
+		user = await User.findById(userId, "username image").populate<{
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			apps: mongoose.Document<unknown, any, AppData>[] & AppData[];
+		}>("apps", "-author");
 	} catch (error) {
 		return next(new HttpError("Fetching app is failed, please try again later", 500));
 	}
-	if (!app) {
+	if (!user) {
 		return next(new HttpError("Invalid user ID, could not find", 400));
 	}
-	res.status(200).json({ app });
+	res.status(200).json({ user });
 };
 
 export const createNewApp = async (req: Request, res: Response, next: NextFunction) => {
@@ -101,16 +100,13 @@ export const createNewApp = async (req: Request, res: Response, next: NextFuncti
 
 export const updateApp = async (req: Request, res: Response, next: NextFunction) => {
 	const appId = new mongoose.Types.ObjectId(req.params.appId);
-	const { title, description, url } = req.body;
+	const { title, description, url, author } = req.body;
 
 	const user = req.user as UserData;
 	if (!user) {
 		return next(new HttpError("unknown user", 400));
 	}
-	if (!req.file) {
-		return next(new HttpError("Please provide an image", 400));
-	}
-
+	console.log(req.file);
 	let app;
 	try {
 		app = await App.findById(appId);
@@ -120,7 +116,7 @@ export const updateApp = async (req: Request, res: Response, next: NextFunction)
 	if (!app) {
 		return next(new HttpError("Invalid app id, could not find", 400));
 	}
-	if (!app.author.equals(user._id)) {
+	if (!app.author.equals(author)) {
 		return next(new HttpError("You are not allowed to edit this place", 403));
 	}
 
@@ -128,18 +124,19 @@ export const updateApp = async (req: Request, res: Response, next: NextFunction)
 	app.title = title;
 	app.description = description;
 	app.url = url;
-	app.image = req.file.path;
+	app.image = req.file ? req.file.path : app.image;
 	try {
 		await app.save();
-	} catch (error) {
-		return next(new HttpError("Something went wrong,Could not update application", 500));
-	} finally {
-		fs.unlink(prevImage, (err) => {
+		if (!req.file) return;
+		await fs.unlink(prevImage, (err) => {
 			if (err) {
 				console.log(err);
 			}
 		});
-		res.status(201).json({ app, user });
+	} catch (error) {
+		return next(new HttpError("Something went wrong,Could not update application", 500));
+	} finally {
+		res.status(201).json({ app });
 	}
 };
 
@@ -150,6 +147,7 @@ export const deleteApp = async (req: Request, res: Response, next: NextFunction)
 	}
 
 	const appId = new mongoose.Types.ObjectId(req.params.appId);
+
 	let app;
 	try {
 		app = await App.findById(appId).populate<{
@@ -173,16 +171,16 @@ export const deleteApp = async (req: Request, res: Response, next: NextFunction)
 		await app.author.updateOne({ apps: update }, { session });
 		await app.remove({ session });
 		await session.commitTransaction();
+		await fs.unlink(app.image, (err) => {
+			if (err) {
+				console.log(err);
+			}
+		});
 	} catch (error) {
 		await session.abortTransaction();
 		return next(new HttpError("Something went wrong, please try again later"));
 	} finally {
 		session.endSession();
-		fs.unlink(app.image, (err) => {
-			if (err) {
-				console.log(err);
-			}
-		});
-		res.status(200).json({ message: "Successfully deleted of app", user });
+		res.status(200).json({ message: "Successfully deleted of app" });
 	}
 };
