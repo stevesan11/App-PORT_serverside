@@ -62,7 +62,6 @@ export const signup = async (req: Request, res: Response, next: NextFunction) =>
 	} catch (error) {
 		return next(new HttpError("Signning up is failed, please try again later", 500));
 	}
-
 	const payload = { userId: newUser._id, email: newUser.email };
 	const token = jwt.sign(payload, "secret", { expiresIn: "1h" });
 	res.status(201).json({ userId: newUser._id, token });

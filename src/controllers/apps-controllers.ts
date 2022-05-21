@@ -88,13 +88,19 @@ export const createNewApp = async (req: Request, res: Response, next: NextFuncti
 		existingUser.apps.push(newApp.id);
 		await existingUser.save({ session });
 		await session.commitTransaction();
-		session.endSession();
 	} catch (error) {
 		await session.abortTransaction();
-		session.endSession();
 		return next(new HttpError("Creating app failed, please try again later", 500));
 	} finally {
-		res.status(201).json({ newApp, user });
+		session.endSession();
+		const app = {
+			_id: newApp._id,
+			title: newApp.title,
+			description: newApp.title,
+			image: newApp.image,
+			url: newApp.url,
+		};
+		res.status(201).json({ app });
 	}
 };
 
@@ -106,7 +112,6 @@ export const updateApp = async (req: Request, res: Response, next: NextFunction)
 	if (!user) {
 		return next(new HttpError("unknown user", 400));
 	}
-	console.log(req.file);
 	let app;
 	try {
 		app = await App.findById(appId);
@@ -142,6 +147,7 @@ export const updateApp = async (req: Request, res: Response, next: NextFunction)
 
 export const deleteApp = async (req: Request, res: Response, next: NextFunction) => {
 	const user = req.user as UserData;
+
 	if (!user) {
 		return next(new HttpError("unknown user", 400));
 	}
@@ -181,6 +187,13 @@ export const deleteApp = async (req: Request, res: Response, next: NextFunction)
 		return next(new HttpError("Something went wrong, please try again later"));
 	} finally {
 		session.endSession();
-		res.status(200).json({ message: "Successfully deleted of app" });
+		const resApp = {
+			_id: app._id,
+			title: app.title,
+			description: app.description,
+			image: app.image,
+			url: app.url,
+		};
+		res.status(200).json({ app: resApp });
 	}
 };
