@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as JwtStrategy, ExtractJwt, VerifiedCallback } from "passport-jwt";
+import "dotenv/config";
 
 import User from "../model/userModel";
 import HttpError from "../model/http-error";

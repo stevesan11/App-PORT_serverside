@@ -7,6 +7,7 @@ exports.checkJwtAuth = exports.checkLocalAuth = void 0;
 const passport_1 = __importDefault(require("passport"));
 const passport_local_1 = require("passport-local");
 const passport_jwt_1 = require("passport-jwt");
+require("dotenv/config");
 const userModel_1 = __importDefault(require("../model/userModel"));
 const http_error_1 = __importDefault(require("../model/http-error"));
 passport_1.default.use(new passport_local_1.Strategy({

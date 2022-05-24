@@ -1,10 +1,4 @@
 {
-	"env": {
-		"MONGO_NAME": "admin-Yuki",
-		"MONGO_PASS": "yuki1116.",
-		"DB_NAME": "appport",
-		"JWT_PASS": "jwt_hidden"
-	},
 	"watch": ["src"],
 	"ext": "ts",
 	"ignore": [],
