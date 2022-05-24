@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkwebpack=self.webpackChunkwebpack||[]).push([[825],{3825:function(e,t,l){l.r(t);var c=l(7294);t.default=()=>c.createElement("div",{className:"h-[70px] flex flex-col gap-1 justify-center items-center text-xs border-t"},c.createElement("p",null,"© 2022 Yuki"),c.createElement("p",null,"当サイトのイラストや文章の無断転用・転載を禁じます。"))}}]);

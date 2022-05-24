@@ -1,5 +1,4 @@
 node_modules
-dist
 nodemon.json
 uploads/images
 src/client
