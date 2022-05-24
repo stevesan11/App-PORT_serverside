@@ -4,7 +4,8 @@
 		"MONGO_NAME": "admin-Yuki",
 		"MONGO_PASS": "yuki1116.",
 		"DB_NAME": "appport",
-		"FRONT_URL": "http://localhost:3000"
+		"FRONT_URL": "http://localhost:3000",
+		"JWT_PASS": "jwt_hidden"
 	},
 	"watch": ["src"],
 	"ext": "ts",

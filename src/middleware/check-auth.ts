@@ -45,7 +45,7 @@ passport.use(
 passport.use(
 	new JwtStrategy(
 		{
-			secretOrKey: "secret",
+			secretOrKey: process.env.JWT_PASS,
 			jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
 		},
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any

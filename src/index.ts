@@ -24,11 +24,17 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(passport.initialize());
-// app.use("/uploads/images", express.static(__dirname + "/uploads/images"));
 app.use("/uploads/images", express.static(path.join("uploads", "images")));
+app.use(express.static(path.join(__dirname, "client")));
 
 app.use("/api/user", usersRoutes);
 app.use("/api/app", appsRoutes);
+
+//index.html redirectt rewritecofig
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+app.use((req: Request, res: Response) => {
+	res.sendFile(path.join(__dirname, "client", "index.html"));
+});
 
 app.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {
 	if (req.file) {

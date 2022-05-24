@@ -63,7 +63,7 @@ export const signup = async (req: Request, res: Response, next: NextFunction) =>
 		return next(new HttpError("Signning up is failed, please try again later", 500));
 	}
 	const payload = { userId: newUser._id, email: newUser.email };
-	const token = jwt.sign(payload, "secret", { expiresIn: "1h" });
+	const token = jwt.sign(payload, process.env.JWT_PASS as string, { expiresIn: "1h" });
 	res.status(201).json({ userId: newUser._id, token });
 };
 
@@ -73,6 +73,6 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
 		return next(new HttpError("Could not find a user for the provided email", 401));
 	}
 	const payload = { userId: user._id, email: user.email };
-	const token = jwt.sign(payload, "secret", { expiresIn: "1h" });
+	const token = jwt.sign(payload, process.env.JWT_PASS as string, { expiresIn: "1h" });
 	res.status(201).json({ userId: user._id, token });
 };
