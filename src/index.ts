@@ -1,15 +1,16 @@
-import fs from "fs";
 import path from "path";
 
 import express, { Request, Response, NextFunction } from "express";
 import mongoose from "mongoose";
 import passport from "./middleware/check-auth";
 // import cors from "cors";
+import "dotenv/config";
 
 import usersRoutes from "./routes/users-routes";
 import appsRoutes from "./routes/apps-routes";
 
 import HttpError from "./model/http-error";
+import { deleteAWSObject } from "./middleware/file-upload";
 
 const app: express.Express = express();
 
@@ -31,18 +32,14 @@ app.use("/api/user", usersRoutes);
 app.use("/api/app", appsRoutes);
 
 //index.html redirectt rewritecofig
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((req: Request, res: Response) => {
 	res.sendFile(path.join(__dirname, "client", "index.html"));
 });
 
 app.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {
-	if (req.file) {
-		fs.unlink(req.file.path, (err) => {
-			if (err) {
-				console.log(err);
-			}
-		});
+	const file = req.file as Express.MulterS3.File;
+	if (file) {
+		deleteAWSObject(file.key);
 	}
 	if (res.headersSent) {
 		return next(err);

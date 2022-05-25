@@ -1,11 +1,10 @@
-import fs from "fs";
-
 import { Request, Response, NextFunction } from "express";
 import mongoose, { Types } from "mongoose";
 
 import App, { AppData } from "../model/appModel";
 import User, { UserData } from "../model/userModel";
 import HttpError from "../model/http-error";
+import { deleteAWSObject } from "../middleware/file-upload";
 
 // export const getAllApps = async (req: Request, res: Response, next: NextFunction) => {
 // 	let apps;
@@ -55,11 +54,12 @@ export const getAppByUserId = async (req: Request, res: Response, next: NextFunc
 export const createNewApp = async (req: Request, res: Response, next: NextFunction) => {
 	const { title, description, url } = req.body;
 	const user = req.user as UserData;
+	const file = req.file as Express.MulterS3.File;
 
 	if (!user) {
 		return next(new HttpError("unknown user", 400));
 	}
-	if (!req.file) {
+	if (!file) {
 		return next(new HttpError("Please provide an image", 400));
 	}
 
@@ -76,7 +76,7 @@ export const createNewApp = async (req: Request, res: Response, next: NextFuncti
 	const newApp = new App({
 		title,
 		description,
-		image: req.file.path,
+		image: file.key,
 		url,
 		author: user._id,
 	});
@@ -107,11 +107,13 @@ export const createNewApp = async (req: Request, res: Response, next: NextFuncti
 export const updateApp = async (req: Request, res: Response, next: NextFunction) => {
 	const appId = new mongoose.Types.ObjectId(req.params.appId);
 	const { title, description, url, author } = req.body;
-
 	const user = req.user as UserData;
+	const file = req.file as Express.MulterS3.File;
+
 	if (!user) {
 		return next(new HttpError("unknown user", 400));
 	}
+
 	let app;
 	try {
 		app = await App.findById(appId);
@@ -129,15 +131,12 @@ export const updateApp = async (req: Request, res: Response, next: NextFunction)
 	app.title = title;
 	app.description = description;
 	app.url = url;
-	app.image = req.file ? req.file.path : app.image;
+	app.image = file ? file.key : app.image;
 	try {
 		await app.save();
-		if (!req.file) return;
-		await fs.unlink(prevImage, (err) => {
-			if (err) {
-				console.log(err);
-			}
-		});
+		if (file) {
+			await deleteAWSObject(prevImage);
+		}
 	} catch (error) {
 		return next(new HttpError("Something went wrong,Could not update application", 500));
 	} finally {
@@ -173,15 +172,12 @@ export const deleteApp = async (req: Request, res: Response, next: NextFunction)
 	const session = await mongoose.startSession();
 	session.startTransaction();
 	try {
+		const { image: prevImage } = app;
 		const update = app.author.apps.filter((app: Types.ObjectId) => !app.equals(appId));
 		await app.author.updateOne({ apps: update }, { session });
 		await app.remove({ session });
 		await session.commitTransaction();
-		await fs.unlink(app.image, (err) => {
-			if (err) {
-				console.log(err);
-			}
-		});
+		await deleteAWSObject(prevImage);
 	} catch (error) {
 		await session.abortTransaction();
 		return next(new HttpError("Something went wrong, please try again later"));

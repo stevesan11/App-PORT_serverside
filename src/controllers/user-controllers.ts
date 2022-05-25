@@ -25,8 +25,9 @@ export const getAllUsers = async (req: Request, res: Response, next: NextFunctio
 
 export const signup = async (req: Request, res: Response, next: NextFunction) => {
 	const { username, email, password } = req.body;
+	const file = req.file as Express.MulterS3.File;
 
-	if (!req.file) {
+	if (!file) {
 		return next(new HttpError("Please provide an image", 400));
 	}
 
@@ -54,7 +55,7 @@ export const signup = async (req: Request, res: Response, next: NextFunction) =>
 		username,
 		email,
 		password,
-		image: req.file.path,
+		image: file.key,
 		apps: [],
 	});
 	try {
