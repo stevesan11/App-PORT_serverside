@@ -4,11 +4,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteApp = exports.updateApp = exports.createNewApp = exports.getAppByUserId = exports.getAppById = void 0;
-const fs_1 = __importDefault(require("fs"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const appModel_1 = __importDefault(require("../model/appModel"));
 const userModel_1 = __importDefault(require("../model/userModel"));
 const http_error_1 = __importDefault(require("../model/http-error"));
+const file_upload_1 = require("../middleware/file-upload");
 // export const getAllApps = async (req: Request, res: Response, next: NextFunction) => {
 // 	let apps;
 // 	try {
@@ -54,10 +54,11 @@ exports.getAppByUserId = getAppByUserId;
 const createNewApp = async (req, res, next) => {
     const { title, description, url } = req.body;
     const user = req.user;
+    const file = req.file;
     if (!user) {
         return next(new http_error_1.default("unknown user", 400));
     }
-    if (!req.file) {
+    if (!file) {
         return next(new http_error_1.default("Please provide an image", 400));
     }
     let existingUser;
@@ -73,7 +74,7 @@ const createNewApp = async (req, res, next) => {
     const newApp = new appModel_1.default({
         title,
         description,
-        image: req.file.path,
+        image: file.key,
         url,
         author: user._id,
     });
@@ -106,6 +107,7 @@ const updateApp = async (req, res, next) => {
     const appId = new mongoose_1.default.Types.ObjectId(req.params.appId);
     const { title, description, url, author } = req.body;
     const user = req.user;
+    const file = req.file;
     if (!user) {
         return next(new http_error_1.default("unknown user", 400));
     }
@@ -126,16 +128,12 @@ const updateApp = async (req, res, next) => {
     app.title = title;
     app.description = description;
     app.url = url;
-    app.image = req.file ? req.file.path : app.image;
+    app.image = file ? file.key : app.image;
     try {
         await app.save();
-        if (!req.file)
-            return;
-        await fs_1.default.unlink(prevImage, (err) => {
-            if (err) {
-                console.log(err);
-            }
-        });
+        if (file) {
+            await (0, file_upload_1.deleteAWSObject)(prevImage);
+        }
     }
     catch (error) {
         return next(new http_error_1.default("Something went wrong,Could not update application", 500));
@@ -167,15 +165,12 @@ const deleteApp = async (req, res, next) => {
     const session = await mongoose_1.default.startSession();
     session.startTransaction();
     try {
+        const { image: prevImage } = app;
         const update = app.author.apps.filter((app) => !app.equals(appId));
         await app.author.updateOne({ apps: update }, { session });
         await app.remove({ session });
         await session.commitTransaction();
-        await fs_1.default.unlink(app.image, (err) => {
-            if (err) {
-                console.log(err);
-            }
-        });
+        await (0, file_upload_1.deleteAWSObject)(prevImage);
     }
     catch (error) {
         await session.abortTransaction();

@@ -3,15 +3,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const express_1 = __importDefault(require("express"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const check_auth_1 = __importDefault(require("./middleware/check-auth"));
+const helmet_1 = __importDefault(require("helmet"));
 // import cors from "cors";
+require("dotenv/config");
 const users_routes_1 = __importDefault(require("./routes/users-routes"));
 const apps_routes_1 = __importDefault(require("./routes/apps-routes"));
+const file_upload_1 = require("./middleware/file-upload");
 const app = (0, express_1.default)();
+app.use((0, helmet_1.default)());
 // app.use(
 // 	cors({
 // 		origin: process.env.FRONT_URL,
@@ -23,22 +26,18 @@ const app = (0, express_1.default)();
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: false }));
 app.use(check_auth_1.default.initialize());
-app.use("/uploads/images", express_1.default.static(path_1.default.join("uploads", "images")));
+// app.use("/uploads/images", express.static(path.join("uploads", "images")));
 app.use(express_1.default.static(path_1.default.join(__dirname, "client")));
 app.use("/api/user", users_routes_1.default);
 app.use("/api/app", apps_routes_1.default);
 //index.html redirectt rewritecofig
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((req, res) => {
     res.sendFile(path_1.default.join(__dirname, "client", "index.html"));
 });
 app.use((err, req, res, next) => {
-    if (req.file) {
-        fs_1.default.unlink(req.file.path, (err) => {
-            if (err) {
-                console.log(err);
-            }
-        });
+    const file = req.file;
+    if (file) {
+        (0, file_upload_1.deleteAWSObject)(file.key);
     }
     if (res.headersSent) {
         return next(err);

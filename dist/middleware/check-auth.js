@@ -7,6 +7,7 @@ exports.checkJwtAuth = exports.checkLocalAuth = void 0;
 const passport_1 = __importDefault(require("passport"));
 const passport_local_1 = require("passport-local");
 const passport_jwt_1 = require("passport-jwt");
+const bcrypt_1 = __importDefault(require("bcrypt"));
 require("dotenv/config");
 const userModel_1 = __importDefault(require("../model/userModel"));
 const http_error_1 = __importDefault(require("../model/http-error"));
@@ -33,15 +34,23 @@ async (email, password, done) => {
             errCode: 401,
         });
     }
-    if (existinguser.password !== password) {
+    let passwordIsValid;
+    try {
+        passwordIsValid = await bcrypt_1.default.compare(password, existinguser.password);
+    }
+    catch (error) {
+        return done(null, false, {
+            message: "Password hashing failed, please try again later",
+            errCode: 401,
+        });
+    }
+    if (!passwordIsValid) {
         return done(null, false, {
             message: "Could not log you in, please check your credintials and try again",
             errCode: 401,
         });
     }
-    else {
-        return done(null, existinguser);
-    }
+    return done(null, existinguser);
 }));
 passport_1.default.use(new passport_jwt_1.Strategy({
     secretOrKey: process.env.JWT_PASS,

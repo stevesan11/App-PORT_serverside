@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as JwtStrategy, ExtractJwt, VerifiedCallback } from "passport-jwt";
+import bcrypt from "bcrypt";
 import "dotenv/config";
 
 import User from "../model/userModel";
@@ -31,14 +32,23 @@ passport.use(
 					errCode: 401,
 				});
 			}
-			if (existinguser.password !== password) {
+
+			let passwordIsValid;
+			try {
+				passwordIsValid = await bcrypt.compare(password, existinguser.password);
+			} catch (error) {
+				return done(null, false, {
+					message: "Password hashing failed, please try again later",
+					errCode: 401,
+				});
+			}
+			if (!passwordIsValid) {
 				return done(null, false, {
 					message: "Could not log you in, please check your credintials and try again",
 					errCode: 401,
 				});
-			} else {
-				return done(null, existinguser);
 			}
+			return done(null, existinguser);
 		}
 	)
 );

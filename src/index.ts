@@ -3,6 +3,7 @@ import path from "path";
 import express, { Request, Response, NextFunction } from "express";
 import mongoose from "mongoose";
 import passport from "./middleware/check-auth";
+import helmet from "helmet";
 // import cors from "cors";
 import "dotenv/config";
 
@@ -14,6 +15,7 @@ import { deleteAWSObject } from "./middleware/file-upload";
 
 const app: express.Express = express();
 
+app.use(helmet());
 // app.use(
 // 	cors({
 // 		origin: process.env.FRONT_URL,
@@ -25,7 +27,7 @@ const app: express.Express = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(passport.initialize());
-app.use("/uploads/images", express.static(path.join("uploads", "images")));
+// app.use("/uploads/images", express.static(path.join("uploads", "images")));
 app.use(express.static(path.join(__dirname, "client")));
 
 app.use("/api/user", usersRoutes);

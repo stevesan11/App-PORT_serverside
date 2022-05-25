@@ -5,6 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.login = exports.signup = exports.getAllUsers = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const bcrypt_1 = __importDefault(require("bcrypt"));
+require("dotenv/config");
 const http_error_1 = __importDefault(require("../model/http-error"));
 const userModel_1 = __importDefault(require("../model/userModel"));
 const getAllUsers = async (req, res, next) => {
@@ -23,7 +25,8 @@ const getAllUsers = async (req, res, next) => {
 exports.getAllUsers = getAllUsers;
 const signup = async (req, res, next) => {
     const { username, email, password } = req.body;
-    if (!req.file) {
+    const file = req.file;
+    if (!file) {
         return next(new http_error_1.default("Please provide an image", 400));
     }
     let existingName;
@@ -46,11 +49,18 @@ const signup = async (req, res, next) => {
     if (existingEmail) {
         return next(new http_error_1.default("User exist already, please login instead", 409));
     }
+    let hashedPassword;
+    try {
+        hashedPassword = await bcrypt_1.default.hash(password, parseInt(process.env.SALT_ROUNDS));
+    }
+    catch (error) {
+        return next(new http_error_1.default("Password hashing failed, please try again later", 500));
+    }
     const newUser = new userModel_1.default({
         username,
         email,
-        password,
-        image: req.file.path,
+        password: hashedPassword,
+        image: file.key,
         apps: [],
     });
     try {

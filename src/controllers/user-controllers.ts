@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+import "dotenv/config";
 
 import HttpError from "../model/http-error";
 
@@ -51,10 +53,17 @@ export const signup = async (req: Request, res: Response, next: NextFunction) =>
 		return next(new HttpError("User exist already, please login instead", 409));
 	}
 
+	let hashedPassword;
+	try {
+		hashedPassword = await bcrypt.hash(password, parseInt(process.env.SALT_ROUNDS as string));
+	} catch (error) {
+		return next(new HttpError("Password hashing failed, please try again later", 500));
+	}
+
 	const newUser = new User({
 		username,
 		email,
-		password,
+		password: hashedPassword,
 		image: file.key,
 		apps: [],
 	});
@@ -70,9 +79,11 @@ export const signup = async (req: Request, res: Response, next: NextFunction) =>
 
 export const login = async (req: Request, res: Response, next: NextFunction) => {
 	const user = req.user as UserData;
+
 	if (!user) {
 		return next(new HttpError("Could not find a user for the provided email", 401));
 	}
+
 	const payload = { userId: user._id, email: user.email };
 	const token = jwt.sign(payload, process.env.JWT_PASS as string, { expiresIn: "1h" });
 	res.status(201).json({ userId: user._id, token });
