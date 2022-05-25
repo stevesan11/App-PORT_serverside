@@ -14,11 +14,26 @@ const users_routes_1 = __importDefault(require("./routes/users-routes"));
 const apps_routes_1 = __importDefault(require("./routes/apps-routes"));
 const file_upload_1 = require("./middleware/file-upload");
 const app = (0, express_1.default)();
-app.use((0, helmet_1.default)());
+app.use((0, helmet_1.default)({
+    contentSecurityPolicy: {
+        directives: {
+            "img-src": ["'self'", "data:", process.env.AWS_URL],
+        },
+    },
+    crossOriginEmbedderPolicy: false,
+}));
+// app.use(
+// 	cors({
+// 		origin: process.env.AWS_URL,
+// 		allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"],
+// 		methods: ["GET"],
+// 		optionsSuccessStatus: 200,
+// 	})
+// );
 // app.use(
 // 	cors({
 // 		origin: process.env.FRONT_URL,
-// 		allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Authorization"],
+// 		allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"],
 // 		methods: ["GET", "POST", "PATCH", "DELETE"],
 // 		optionsSuccessStatus: 200,
 // 	})

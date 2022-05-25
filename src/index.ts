@@ -4,7 +4,7 @@ import express, { Request, Response, NextFunction } from "express";
 import mongoose from "mongoose";
 import passport from "./middleware/check-auth";
 import helmet from "helmet";
-import cors from "cors";
+// import cors from "cors";
 import "dotenv/config";
 
 import usersRoutes from "./routes/users-routes";
@@ -19,19 +19,20 @@ app.use(
 	helmet({
 		contentSecurityPolicy: {
 			directives: {
-				"img-src": ["self", process.env.AWS_URL as string],
+				"img-src": ["'self'", "data:", process.env.AWS_URL as string],
 			},
 		},
+		crossOriginEmbedderPolicy: false,
 	})
 );
-app.use(
-	cors({
-		origin: process.env.AWS_URL,
-		allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"],
-		methods: ["GET"],
-		optionsSuccessStatus: 200,
-	})
-);
+// app.use(
+// 	cors({
+// 		origin: process.env.AWS_URL,
+// 		allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"],
+// 		methods: ["GET"],
+// 		optionsSuccessStatus: 200,
+// 	})
+// );
 // app.use(
 // 	cors({
 // 		origin: process.env.FRONT_URL,
