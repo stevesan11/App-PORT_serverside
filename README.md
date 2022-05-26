@@ -73,7 +73,21 @@ password: Qwe123123<br>
 
 - Node.js(Express)<br><br>
 
+## **データベース**
+
+- MongoDB(ユーザー情報、アプリ情報の保存)<br><br>
+
+## **ストレージ**
+
+- AWS S3(画像の保存)<br><br>
+
+## **セキュリティ対策**
+
+- helmet(HTTP ヘッダー関係)
+- bcrypt(パスワードをハッシュ化)
+- passport-local / passport-jwt(ユーザー認証)<br><br>
+
 # 実装予定
 
 - Google 認証
-- 登録メールアドレスの認証<br><br>
+- 登録メールアドレスの URL 認証
