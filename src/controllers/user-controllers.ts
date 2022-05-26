@@ -8,6 +8,7 @@ import HttpError from "../model/http-error";
 
 import User, { UserData } from "../model/userModel";
 import { AppData } from "../model/appModel";
+import { validationResult } from "express-validator";
 
 export const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
 	let user;
@@ -26,6 +27,11 @@ export const getAllUsers = async (req: Request, res: Response, next: NextFunctio
 };
 
 export const signup = async (req: Request, res: Response, next: NextFunction) => {
+	const errors = validationResult(req);
+	if (!errors.isEmpty()) {
+		return next(new HttpError("Validation error occurred", 400));
+	}
+
 	const { username, email, password } = req.body;
 	const file = req.file as Express.MulterS3.File;
 
@@ -78,6 +84,10 @@ export const signup = async (req: Request, res: Response, next: NextFunction) =>
 };
 
 export const login = async (req: Request, res: Response, next: NextFunction) => {
+	const errors = validationResult(req);
+	if (!errors.isEmpty()) {
+		return next(new HttpError("Validation error occurred", 400));
+	}
 	const user = req.user as UserData;
 
 	if (!user) {

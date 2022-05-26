@@ -5,6 +5,7 @@ import App, { AppData } from "../model/appModel";
 import User, { UserData } from "../model/userModel";
 import HttpError from "../model/http-error";
 import { deleteAWSObject } from "../middleware/file-upload";
+import { validationResult } from "express-validator";
 
 // export const getAllApps = async (req: Request, res: Response, next: NextFunction) => {
 // 	let apps;
@@ -52,6 +53,10 @@ export const getAppByUserId = async (req: Request, res: Response, next: NextFunc
 };
 
 export const createNewApp = async (req: Request, res: Response, next: NextFunction) => {
+	const errors = validationResult(req);
+	if (!errors.isEmpty()) {
+		return next(new HttpError("Validation error occurred", 400));
+	}
 	const { title, description, url } = req.body;
 	const user = req.user as UserData;
 	const file = req.file as Express.MulterS3.File;
@@ -105,6 +110,10 @@ export const createNewApp = async (req: Request, res: Response, next: NextFuncti
 };
 
 export const updateApp = async (req: Request, res: Response, next: NextFunction) => {
+	const errors = validationResult(req);
+	if (!errors.isEmpty()) {
+		return next(new HttpError("Validation error occurred", 400));
+	}
 	const appId = new mongoose.Types.ObjectId(req.params.appId);
 	const { title, description, url, author } = req.body;
 	const user = req.user as UserData;
